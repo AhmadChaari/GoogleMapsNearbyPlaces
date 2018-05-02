@@ -223,7 +223,7 @@ LocationListener{
         googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
         googlePlaceUrl.append("&type="+nearbyPlace);
         googlePlaceUrl.append("&sensor=true");
-        googlePlaceUrl.append("&key="+"AIzaSyBLEPBRfw7sMb73Mr88L91Jqh3tuE4mKsE");
+        googlePlaceUrl.append("&key="+"AIzaSyCugx9gfu2dh7LjdRi6fjC4IWDW9rCAZOM");
 
         Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
 
