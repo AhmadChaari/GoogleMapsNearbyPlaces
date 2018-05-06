@@ -143,7 +143,7 @@ LocationListener{
     public void onClick(View v)
     {
         Object dataTransfer[] = new Object[2];
-        GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData();
+        GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData(this);
 
         switch(v.getId())
         {
@@ -155,27 +155,18 @@ LocationListener{
 
                 if(!location.equals(""))
                 {
-                    Geocoder geocoder = new Geocoder(this);
 
-                    try {
-                        addressList = geocoder.getFromLocationName(location, 5);
+                    mMap.clear();
 
-                        if(addressList != null)
-                        {
-                            for(int i = 0;i<addressList.size();i++)
-                            {
-                                LatLng latLng = new LatLng(addressList.get(i).getLatitude() , addressList.get(i).getLongitude());
-                                MarkerOptions markerOptions = new MarkerOptions();
-                                markerOptions.position(latLng);
-                                markerOptions.title(location);
-                                mMap.addMarker(markerOptions);
-                                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                                mMap.animateCamera(CameraUpdateFactory.zoomTo(10));
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    String url = getUrl(latitude, longitude, location);
+                    dataTransfer[0] = mMap;
+                    dataTransfer[1] = url;
+
+                    getNearbyPlacesData.execute(dataTransfer);
+                    Toast.makeText(MapsActivity.this, "Showing Nearby Targets", Toast.LENGTH_SHORT).show();
+                    break;
+
+
                 }
                 break;
             case R.id.B_hopistals:
@@ -202,7 +193,7 @@ LocationListener{
                 break;
             case R.id.B_restaurants:
                 mMap.clear();
-                String resturant = "restuarant";
+                String resturant = "restaurant";
                 url = getUrl(latitude, longitude, resturant);
                 dataTransfer[0] = mMap;
                 dataTransfer[1] = url;
@@ -221,7 +212,7 @@ LocationListener{
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
         googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
-        googlePlaceUrl.append("&type="+nearbyPlace);
+        googlePlaceUrl.append("&keyword="+nearbyPlace);
         googlePlaceUrl.append("&sensor=true");
         googlePlaceUrl.append("&key="+"AIzaSyCugx9gfu2dh7LjdRi6fjC4IWDW9rCAZOM");
 
@@ -274,4 +265,5 @@ LocationListener{
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
     }
+
 }

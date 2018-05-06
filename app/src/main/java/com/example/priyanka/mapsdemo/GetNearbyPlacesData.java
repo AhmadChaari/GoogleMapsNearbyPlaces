@@ -1,5 +1,6 @@
 package com.example.priyanka.mapsdemo;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -17,6 +18,10 @@ import java.util.List;
  */
 
 class GetNearbyPlacesData extends AsyncTask<Object, String, String> {
+    Context c;
+    public GetNearbyPlacesData(Context c) {
+        this.c = c ;
+    }
 
     private String googlePlacesData;
     private GoogleMap mMap;
@@ -41,7 +46,7 @@ class GetNearbyPlacesData extends AsyncTask<Object, String, String> {
     protected void onPostExecute(String s){
 
         List<HashMap<String, String>> nearbyPlaceList;
-        DataParser parser = new DataParser();
+        DataParser parser = new DataParser(c);
         nearbyPlaceList = parser.parse(s);
         Log.d("nearbyplacesdata","called parse method");
         showNearbyPlaces(nearbyPlaceList);
