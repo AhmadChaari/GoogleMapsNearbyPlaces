@@ -3,6 +3,7 @@ package com.example.priyanka.mapsdemo;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,6 +39,7 @@ class GetNearbyPlacesData extends AsyncTask<Object, String, String> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
         return googlePlacesData;
     }

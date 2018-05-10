@@ -20,11 +20,15 @@ import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.eclipse.paho.client.mqttv3.internal.wire.MqttWireMessage;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,22 +41,22 @@ import java.util.List;
  */
 
 public class DataParser {
-    private static final String TAG ="hello" ;
+    private static final String TAG = "hello";
     Context c;
+
     public DataParser(Context c) {
-        this.c=c;
+        this.c = c;
     }
 
-    private HashMap<String, String> getPlace(JSONObject googlePlaceJson)
-    {
+    public HashMap<String, String> getPlace(JSONObject googlePlaceJson) {
         HashMap<String, String> googlePlaceMap = new HashMap<>();
         String placeName = "--NA--";
-        String vicinity= "--NA--";
-        String latitude= "";
-        String longitude="";
-        String reference="";
+        String vicinity = "--NA--";
+        String latitude = "";
+        String longitude = "";
+        String reference = "";
 
-        Log.v("DataParser","jsonobject ="+googlePlaceJson.toString());
+        Log.v("DataParser", "jsonobject =" + googlePlaceJson.toString());
 
 
         try {
@@ -75,21 +79,19 @@ public class DataParser {
             googlePlaceMap.put("reference", reference);
 
 
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
         return googlePlaceMap;
 
     }
-    private List<HashMap<String, String>>getPlaces(JSONArray jsonArray)
-    {
+
+    private List<HashMap<String, String>> getPlaces(JSONArray jsonArray) {
         int count = jsonArray.length();
         List<HashMap<String, String>> placelist = new ArrayList<>();
         HashMap<String, String> placeMap = null;
 
-        for(int i = 0; i<count;i++)
-        {
+        for (int i = 0; i < count; i++) {
             try {
                 placeMap = getPlace((JSONObject) jsonArray.get(i));
                 placelist.add(placeMap);
@@ -100,25 +102,140 @@ public class DataParser {
 
         JSONObject test = new JSONObject();
         try {
-            test.put("places",jsonArray);
+            test.put("places", jsonArray);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         Log.d("json-data-test ", test.toString());
         //postJSONObject("http://197.26.55.141:5901/savePlaces.php",test);
 
-        Log.d(TAG,""+test.toString());
-        Toast.makeText(c, ""+test.toString(), Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "" + test.toString());
+        Toast.makeText(c, "" + test.toString(), Toast.LENGTH_SHORT).show();
         sendJsonMQTT(test);
-
+        //receiveJSONObject();
         return placelist;
+    }
+
+    public List<HashMap<String, String>> parse(String jsonData) {
+        JSONArray jsonArray = null;
+        JSONObject jsonObject;
+
+        Log.d("json data", jsonData);
+        Toast.makeText(c, ""+jsonData, Toast.LENGTH_SHORT).show();
+        Log.v("json data", jsonData);
+        try {
+            jsonObject = new JSONObject(jsonData);
+            jsonArray = jsonObject.getJSONArray("results");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return getPlaces(jsonArray);
+    }
+
+
+    /*public void receiveJSONObject (){
+        String topic = "foo/sub";
+        String clientId = MqttClient.generateClientId();
+        final MqttAndroidClient client =
+                new MqttAndroidClient(c, "tcp://34.243.152.115:5555",
+                        clientId);
+        MqttConnectOptions options = new MqttConnectOptions();
+        Toast.makeText(c, "hello sub", Toast.LENGTH_SHORT).show();
+        int qos = 1;
+        client.setCallback(new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                String msg = new String(message.getPayload());
+                Toast.makeText(c, ""+msg, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+
+            }
+        });
+
+
+    }*/
+    public void receiveJSONObject() {
+
+        String clientId = MqttClient.generateClientId();
+        final MqttAndroidClient client =
+                new MqttAndroidClient(c, "tcp://34.243.152.115:5555",
+                        clientId);
+        MqttConnectOptions options = new MqttConnectOptions();
+
+
+        try {
+            options.setUserName("Ahmed");
+            options.setPassword("123456".toCharArray());
+
+            IMqttToken token = client.connect(options);
+            token.setActionCallback(new IMqttActionListener() {
+                public static final String TAG = "shi";
+
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // We are connected
+                    Log.d(TAG, "onSuccess");
+                    Toast.makeText(c, "subscribing ...", Toast.LENGTH_SHORT).show();
+                    setSubscription(client);
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    // Something went wrong e.g. connection timeout or firewall problems
+                    Log.d(TAG, "onFailure");
+                }
+            });
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+        client.setCallback(new MqttCallback() {
+            @Override
+            public void connectionLost(Throwable cause) {
+
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                String msg = new String(message.getPayload());
+                Toast.makeText(c, "" + msg, Toast.LENGTH_SHORT).show();
+                JSONObject jsonObject = new JSONObject(msg);
+                Toast.makeText(c, ""+jsonObject.toString(), Toast.LENGTH_SHORT).show();
+                Log.d("Hello",jsonObject.toString());
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+
+            }
+        });
+
+    }
+
+    private void setSubscription(MqttAndroidClient client) {
+        try {
+            client.subscribe("foo/sub",0);
+            Toast.makeText(c, "Subscribed to foo/sub", Toast.LENGTH_SHORT).show();
+        } catch (MqttSecurityException e) {
+            e.printStackTrace();
+        } catch (MqttException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void sendJsonMQTT(final JSONObject jsonArray) {
 
         String clientId = MqttClient.generateClientId();
         final MqttAndroidClient client =
-                new MqttAndroidClient(c, "tcp://54.202.149.253:5555",
+                new MqttAndroidClient(c, "tcp://34.243.152.115:5555",
                         clientId);
         MqttConnectOptions options = new MqttConnectOptions();
 
@@ -160,68 +277,7 @@ public class DataParser {
         }
     }
 
-    public List<HashMap<String, String>> parse(String jsonData)
-    {
-        JSONArray jsonArray = null;
-        JSONObject jsonObject;
 
-        Log.d("json data", jsonData);
 
-        try {
-            jsonObject = new JSONObject(jsonData);
-            jsonArray = jsonObject.getJSONArray("results");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return getPlaces(jsonArray);
-    }
 
-    public static String postJSONObject(String myurl, JSONObject parameters) {
-        HttpURLConnection conn = null;
-        try {
-            StringBuffer response = null;
-            URL url = new URL(myurl);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setReadTimeout(10000);
-            conn.setConnectTimeout(15000);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            OutputStream out = new BufferedOutputStream(conn.getOutputStream());
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
-            writer.write(parameters.toString());
-            writer.close();
-            out.close();
-            int responseCode = conn.getResponseCode();
-            System.out.println("responseCode" + responseCode);
-            switch (responseCode) {
-                case 200:
-                    BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    String inputLine;
-                    response = new StringBuffer();
-                    while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
-                    }
-                    in.close();
-                    return response.toString();
-            }
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (ProtocolException e) {
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.disconnect();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        return null;
-    }
 }

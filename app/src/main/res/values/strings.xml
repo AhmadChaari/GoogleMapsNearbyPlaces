@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Maps Demo</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="app_name">helloMapMqtt</string>
+    <string name="title_activity_maps">MapMqtt</string>
 </resources>

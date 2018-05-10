@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.wifi.aware.SubscribeConfig;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -31,7 +32,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
@@ -134,14 +139,15 @@ LocationListener{
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomBy(10));
 
+
+
         if(client != null)
         {
             LocationServices.FusedLocationApi.removeLocationUpdates(client,this);
         }
     }
 
-    public void onClick(View v)
-    {
+    public void onClick(View v) throws IOException, JSONException {
         Object dataTransfer[] = new Object[2];
         GetNearbyPlacesData getNearbyPlacesData = new GetNearbyPlacesData(this);
 
@@ -172,11 +178,21 @@ LocationListener{
             case R.id.B_hopistals:
                 mMap.clear();
                 String hospital = "hospital";
-                String url = getUrl(latitude, longitude, hospital);
-                dataTransfer[0] = mMap;
+                //String url = getUrl(latitude, longitude, hospital);
+                String url = "https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJude879XSARMReCS-f8xTj_Y&key=AIzaSyCugx9gfu2dh7LjdRi6fjC4IWDW9rCAZOM";
+                /*
+                    dataTransfer[0] = mMap;
                 dataTransfer[1] = url;
+                DataParser dd = new DataParser(this);
+                DownloadURL u = new DownloadURL();
+                String data=u.readUrl(url);
+                JSONObject jsobj = new JSONObject(data);
 
-                getNearbyPlacesData.execute(dataTransfer);
+                HashMap<String, String> gplmap = dd.getPlace(jsobj);
+                String phone = gplmap.get("formatted_phone_number");
+                Toast.makeText(this, ""+phone, Toast.LENGTH_SHORT).show();
+                */
+                //getNearbyPlacesData.execute(dataTransfer);
                 Toast.makeText(MapsActivity.this, "Showing Nearby Hospitals", Toast.LENGTH_SHORT).show();
                 break;
 
@@ -202,6 +218,9 @@ LocationListener{
                 Toast.makeText(MapsActivity.this, "Showing Nearby Restaurants", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.B_to:
+                DataParser dd = new DataParser(this);
+                dd.receiveJSONObject();
+
         }
     }
 
