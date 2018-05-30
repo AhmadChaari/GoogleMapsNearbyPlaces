@@ -1,4 +1,4 @@
-package com.example.priyanka.mapsdemo;
+package com.example.priyanka.maps;
 import android.util.Log;
 
 import java.io.BufferedReader;

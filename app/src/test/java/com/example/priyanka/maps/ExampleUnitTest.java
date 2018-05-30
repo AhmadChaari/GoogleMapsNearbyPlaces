@@ -1,4 +1,4 @@
-package com.example.priyanka.mapsdemo;
+package com.example.priyanka.maps;
 
 import org.junit.Test;
 
